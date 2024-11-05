@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PID Thermostat Simulation</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; }
+        .controls, .output { margin-top: 20px; }
+        .slider { width: 200px; }
+        .output { width: 400px; height: 100px; border: 1px solid #ccc; padding: 10px; }
+        .label { margin-bottom: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>PID Thermostat Simulation</h1>
+    
+    <div class="controls">
+        <div class="label">Proportional Gain (Kp)</div>
+        <input type="range" id="kp" min="0" max="100" value="50" step="0.1" class="slider">
+        <span id="kp-value">50</span>
+
+        <div class="label">Integral Gain (Ki)</div>
+        <input type="range" id="ki" min="0" max="1" value="0.01" step="0.001" class="slider">
+        <span id="ki-value">0.01</span>
+
+        <div class="label">Derivative Gain (Kd)</div>
+        <input type="range" id="kd" min="0" max="100" value="10" step="0.1" class="slider">
+        <span id="kd-value">10</span>
+
+        <div class="label">Target Temperature (Setpoint)</div>
+        <input type="range" id="setpoint" min="0" max="100" value="50" step="1" class="slider">
+        <span id="setpoint-value">50</span>
+    </div>
+
+    <div class="output">
+        <div>Current Temperature: <span id="current-temperature">20.00</span> °C</div>
+        <div>Power Output: <span id="power-output">0</span> %</div>
+    </div>
+
+    <script>
+        const kpSlider = document.getElementById('kp');
+        const kiSlider = document.getElementById('ki');
+        const kdSlider = document.getElementById('kd');
+        const setpointSlider = document.getElementById('setpoint');
+
+        const kpValue = document.getElementById('kp-value');
+        const kiValue = document.getElementById('ki-value');
+        const kdValue = document.getElementById('kd-value');
+        const setpointValue = document.getElementById('setpoint-value');
+
+        const currentTempDisplay = document.getElementById('current-temperature');
+        const powerOutputDisplay = document.getElementById('power-output');
+
+        let currentTemp = 20;
+        let integral = 0;
+        let previousError = 0;
+        
+        function updateValues() {
+            kpValue.textContent = kpSlider.value;
+            kiValue.textContent = kiSlider.value;
+            kdValue.textContent = kdSlider.value;
+            setpointValue.textContent = setpointSlider.value;
+        }
+
+        function pidControl() {
+            const kp = parseFloat(kpSlider.value);
+            const ki = parseFloat(kiSlider.value);
+            const kd = parseFloat(kdSlider.value);
+            const setpoint = parseFloat(setpointSlider.value);
+
+            const error = setpoint - currentTemp;
+            integral += error;
+            const derivative = error - previousError;
+
+            const output = kp * error + ki * integral + kd * derivative;
+            const power = Math.min(Math.max(output, 0), 100); // limit power to 0-100%
+            
+            currentTemp += (power / 100) - 0.01 * (currentTemp - 20); // simulating heat loss to the environment
+            previousError = error;
+
+            currentTempDisplay.textContent = currentTemp.toFixed(2);
+            powerOutputDisplay.textContent = power.toFixed(2);
+
+            requestAnimationFrame(pidControl);
+        }
+
+        kpSlider.addEventListener('input', updateValues);
+        kiSlider.addEventListener('input', updateValues);
+        kdSlider.addEventListener('input', updateValues);
+        setpointSlider.addEventListener('input', updateValues);
+
+        updateValues();
+        pidControl();
+    </script>
+</body>
+</html>
