@@ -3,40 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PID Thermostat Simulation</title>
+    <title>PID Thermostat Simulation with Graph</title>
     <style>
-        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; }
-        .controls, .output { margin-top: 20px; }
-        .slider { width: 200px; }
-        .output { width: 400px; height: 100px; border: 1px solid #ccc; padding: 10px; }
-        .label { margin-bottom: 5px; font-weight: bold; }
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { display: flex; flex-direction: row; gap: 20px; width: 80%; }
+        .chart-container { width: 60%; cursor: pointer; }
+        .controls { width: 35%; display: flex; flex-direction: column; gap: 15px; }
+        .slider { width: 100%; }
+        .label { font-weight: bold; }
+        .output { margin-top: 20px; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-    <h1>PID Thermostat Simulation</h1>
-    
-    <div class="controls">
-        <div class="label">Proportional Gain (Kp)</div>
-        <input type="range" id="kp" min="0" max="100" value="50" step="0.1" class="slider">
-        <span id="kp-value">50</span>
+    <div class="container">
+        <!-- Chart -->
+        <div class="chart-container">
+            <canvas id="tempChart"></canvas>
+        </div>
 
-        <div class="label">Integral Gain (Ki)</div>
-        <input type="range" id="ki" min="0" max="1" value="0.01" step="0.001" class="slider">
-        <span id="ki-value">0.01</span>
+        <!-- Controls -->
+        <div class="controls">
+            <div class="label">Proportional Gain (Kp)</div>
+            <input type="range" id="kp" min="0" max="100" value="50" step="0.1" class="slider">
+            <span id="kp-value">50</span>
 
-        <div class="label">Derivative Gain (Kd)</div>
-        <input type="range" id="kd" min="0" max="100" value="10" step="0.1" class="slider">
-        <span id="kd-value">10</span>
+            <div class="label">Integral Gain (Ki)</div>
+            <input type="range" id="ki" min="0" max="1" value="0.01" step="0.001" class="slider">
+            <span id="ki-value">0.01</span>
 
-        <div class="label">Target Temperature (Setpoint)</div>
-        <input type="range" id="setpoint" min="0" max="100" value="50" step="1" class="slider">
-        <span id="setpoint-value">50</span>
-    </div>
+            <div class="label">Derivative Gain (Kd)</div>
+            <input type="range" id="kd" min="0" max="100" value="10" step="0.1" class="slider">
+            <span id="kd-value">10</span>
 
-    <div class="output">
-        <div>Current Temperature: <span id="current-temperature">20.00</span> °C</div>
-        <div>Power Output: <span id="power-output">0</span> %</div>
+            <div class="label">Target Temperature (Setpoint)</div>
+            <input type="range" id="setpoint" min="0" max="100" value="50" step="1" class="slider">
+            <span id="setpoint-value">50</span>
+
+            <!-- Dump Heat Button -->
+            <button id="dumpHeatBtn" style="margin-top: 20px;">Dump Heat</button>
+
+            <div class="output">
+                <div>Current Temperature: <span id="current-temperature">20.00</span> °C</div>
+                <div>Power Output: <span id="power-output">0</span> %</div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -52,11 +64,52 @@
 
         const currentTempDisplay = document.getElementById('current-temperature');
         const powerOutputDisplay = document.getElementById('power-output');
+        const dumpHeatBtn = document.getElementById('dumpHeatBtn');
+        const tempChartCanvas = document.getElementById('tempChart');
 
-        let currentTemp = 20;
+        let currentTemp = 0;
         let integral = 0;
         let previousError = 0;
-        
+        let timeStep = 0;
+
+        // Initialize Chart with fixed y-axis scale
+        const ctx = tempChartCanvas.getContext('2d');
+        const tempChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 100}, (_, i) => (i / 10).toFixed(1)),
+                datasets: [
+                    {
+                        label: 'Current Temperature (°C)',
+                        data: Array(100).fill(null),
+                        borderColor: 'rgb(75, 192, 192)',
+                        fill: false,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Target Temperature (Setpoint)',
+                        data: Array(100).fill(parseFloat(setpointSlider.value)),
+                        borderColor: 'rgb(255, 99, 132)',
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { display: true, title: { display: true, text: 'Time (s)' } },
+                    y: {
+                        display: true,
+                        title: { display: true, text: 'Temperature (°C)' },
+                        min: 0,
+                        max: 50
+                    }
+                }
+            }
+        });
+
         function updateValues() {
             kpValue.textContent = kpSlider.value;
             kiValue.textContent = kiSlider.value;
@@ -83,13 +136,45 @@
             currentTempDisplay.textContent = currentTemp.toFixed(2);
             powerOutputDisplay.textContent = power.toFixed(2);
 
-            requestAnimationFrame(pidControl);
+            // Update Chart Data with FIFO style
+            if (tempChart.data.labels.length >= 100) {
+                tempChart.data.labels.shift();
+                tempChart.data.datasets[0].data.shift();
+                tempChart.data.datasets[1].data.shift();
+            }
+
+            tempChart.data.labels.push((timeStep / 10).toFixed(1)); // Time in seconds
+            tempChart.data.datasets[0].data.push(currentTemp);
+            tempChart.data.datasets[1].data.push(setpoint);
+
+            tempChart.update();
+            timeStep++;
+
+            setTimeout(pidControl, 100); // Update every 100ms
         }
 
+        // Event Listeners
         kpSlider.addEventListener('input', updateValues);
         kiSlider.addEventListener('input', updateValues);
         kdSlider.addEventListener('input', updateValues);
         setpointSlider.addEventListener('input', updateValues);
+
+        // Dump heat to reset current temperature
+        dumpHeatBtn.addEventListener('click', () => {
+            currentTemp = 20; // Reset to a lower temperature to simulate heat dump
+        });
+
+        // Reset simulation on chart click
+        tempChartCanvas.addEventListener('click', () => {
+            currentTemp = 20;
+            integral = 0;
+            previousError = 0;
+            timeStep = 0;
+            tempChart.data.labels = Array.from({length: 100}, (_, i) => (i / 10).toFixed(1));
+            tempChart.data.datasets[0].data = Array(100).fill(null);
+            tempChart.data.datasets[1].data = Array(100).fill(parseFloat(setpointSlider.value));
+            tempChart.update();
+        });
 
         updateValues();
         pidControl();
