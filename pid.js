@@ -37,4 +37,8 @@ class PID {
         this.integral = 0.0;
         this.output = 0;
     }
+    
+    clearKi() {
+        this.integral = 0.0;
+    }
 }

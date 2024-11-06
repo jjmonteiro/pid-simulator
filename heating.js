@@ -5,7 +5,7 @@ let heatLossFactor = parseFloat(heatLossSlider.value) / 100; // Initial heat los
 let timeStep = 0.1; // Time step in seconds for simulation
 
 // Initialize PID controller with default values
-let pid = new PID(50, 0.01, 10); // Adjust Kp, Ki, Kd as needed
+let pid = new PID(0, 0, 0); // Adjust Kp, Ki, Kd as needed
 
 // Initialize Chart
 const ctx = tempChartCanvas.getContext('2d');
@@ -35,6 +35,7 @@ function updateValues() {
     kdValue.textContent = kdSlider.value;
     setpointValue.textContent = setpointSlider.value;
     heatLossValue.textContent = heatLossSlider.value;
+    outsideTempValue.textContent = outsideTempSlider.value;
 
     // Update PID parameters
     pid.Kp = parseFloat(kpSlider.value);
@@ -43,21 +44,32 @@ function updateValues() {
 
     setpoint = parseFloat(setpointSlider.value);
     heatLossFactor = parseFloat(heatLossSlider.value) / 100;
+    outsideTemp = parseFloat(outsideTempSlider.value);
 }
 
 function simulateHeating() {
     if (!simulationRunning) return; // If simulation is paused, stop the function
 
-    // Calculate PID output as power percentage (0-100%)
-    const power = pid.calculate(setpoint, currentTemp, timeStep);
+    // Calculate PID output
+    let controlOutput = pid.calculate(setpoint, currentTemp, timeStep);
+    
+    // Clamp power between 0 and 100
+    controlOutput = Math.min(Math.max(controlOutput, 0), 100);
 
-    // Apply the PID output to temperature, simulating heating with heat loss
-    const heatingEffect = power / 100; // Control power as a fraction of heating effect
-    currentTemp += heatingEffect - heatLossFactor * (currentTemp - 5); // Heat loss term
+    // Control power as a fraction of heating effect
+    const heatingEffect = controlOutput / 100;
+
+    // Adjust temperature based on heating effect
+    currentTemp += heatingEffect;
+
+    // Apply heat loss only if heatLossFactor > 0
+    if (heatLossFactor > 0) {
+        currentTemp -= heatLossFactor * (currentTemp - outsideTemp); // Heat loss term
+    }
 
     // Update displays
     currentTempDisplay.textContent = currentTemp.toFixed(2);
-    powerOutputDisplay.textContent = Math.min(Math.max(power, 0), 100).toFixed(2); // Clamp to 0-100%
+    powerOutputDisplay.textContent = controlOutput.toFixed(2);
     pTermDisplay.textContent = (pid.Kp * (setpoint - currentTemp)).toFixed(2);
     iTermDisplay.textContent = (pid.Ki * pid.integral).toFixed(2);
     dTermDisplay.textContent = (pid.Kd * (setpoint - pid.prevError) / timeStep).toFixed(2);
@@ -86,13 +98,14 @@ kiSlider.addEventListener('input', updateValues);
 kdSlider.addEventListener('input', updateValues);
 setpointSlider.addEventListener('input', updateValues);
 heatLossSlider.addEventListener('input', updateValues);
+outsideTempSlider.addEventListener('input', updateValues);
 
 dumpHeatBtn.addEventListener('click', () => {
-    if (currentTemp > 5) currentTemp -= 10;
+    if ((currentTemp -outsideTemp) > 5) currentTemp -= 5;
 });
 
 clearIntegralBtn.addEventListener('click', () => {
-    pid.reset();
+    pid.clearKi();
 });
 
 resetSimulationBtn.addEventListener('click', () => {
