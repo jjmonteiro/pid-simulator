@@ -15,14 +15,15 @@ const tempChart = new Chart(ctx, {
         labels: [],
         datasets: [
             { label: 'Current Temperature (°C)', data: [], borderColor: 'rgb(75, 192, 192)', fill: false },
-            { label: 'Target Temperature (Setpoint)', data: [], borderColor: 'rgb(255, 99, 132)', borderDash: [5, 5], fill: false }
+            { label: 'Target Temperature (Setpoint)', data: [], borderColor: 'rgb(255, 99, 132)', fill: false }
         ]
     },
     options: {
         animation: false, // Disable animation for new points
         scales: {
             x: { display: true, title: { display: true, text: 'Time (s)' } },
-            y: { display: true, title: { display: true, text: 'Temperature (°C)' }, min: 0, max: 40 }
+            y: { display: true, position: 'left', title: { display: true, text: 'Temperature (°C)' }, min: 0, max: 40 },
+            y1:{ display: true, position: 'right', title: { display: true, text: 'Temperature (°C)' }, min: 0, max: 40 }
         }
     }
 });

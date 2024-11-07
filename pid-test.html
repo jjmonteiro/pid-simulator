@@ -5,183 +5,157 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PID Controller Simulation</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
         .container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-            width: 400px;
+            width: 300px;
+            margin: auto;
             text-align: center;
         }
-
-        h1 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .output {
-            font-size: 18px;
+        .bar-container {
+            height: 20px;
+            width: 100%;
+            background-color: #ddd;
             margin: 10px 0;
-            padding: 10px;
-            background-color: #f1f1f1;
+            position: relative;
             border-radius: 5px;
-            margin-top: 20px;
         }
-
-        .output span {
-            font-weight: bold;
-        }
-
-        .controls {
-            margin-top: 20px;
-        }
-
-        .controls input {
-            padding: 5px;
-            margin: 5px;
-            width: 60px;
+        .bar {
+            height: 100%;
+            border-radius: 5px;
             text-align: center;
-        }
-
-        .controls button {
-            padding: 8px 15px;
-            background-color: #4CAF50;
+            line-height: 20px;
             color: white;
-            border: none;
-            cursor: pointer;
-            margin-top: 10px;
+            font-size: 12px;
+            overflow: hidden;
         }
-
-        .controls button:hover {
-            background-color: #45a049;
+        .measured-bar {
+            background-color: #4caf50;
+        }
+        .control-bar {
+            background-color: #f44336;
+        }
+        label, input {
+            display: inline-block;
+            margin: 5px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>PID Controller Simulation</h1>
-
-        <div class="output">
-            <p><span>Setpoint:</span> <span id="setpoint">0.00</span></p>
-            <p><span>Measured Value:</span> <span id="measuredValue">0.00</span></p>
-            <p><span>Control Output:</span> <span id="controlOutput">0.00</span></p>
+        <div>
+            <label for="kp">Kp:</label>
+            <input type="number" id="kp" value="1.0" step="0.1">
+            <label for="ki">Ki:</label>
+            <input type="number" id="ki" value="0.1" step="0.1">
+            <label for="kd">Kd:</label>
+            <input type="number" id="kd" value="0.05" step="0.01">
         </div>
+        
+        <label for="negativeControl">Enable Negative Control:</label>
+        <input type="checkbox" id="negativeControl">
 
-        <div class="controls">
-            <div>
-                <label for="kp">Kp:</label>
-                <input type="number" id="kp" value="1.0" step="0.01">
-            </div>
-            <div>
-                <label for="ki">Ki:</label>
-                <input type="number" id="ki" value="0.1" step="0.01">
-            </div>
-            <div>
-                <label for="kd">Kd:</label>
-                <input type="number" id="kd" value="0.01" step="0.01">
-            </div>
-            <button id="resetButton">Reset Simulation</button>
+        <h2>Setpoint: <span id="setpoint">25.00</span> °C</h2>
+        <h2>Measured Value: <span id="measuredValue">22.00</span> °C</h2>
+        
+        <div>Control Output: <span id="controlOutput">0.00</span>%</div>
+
+        <div class="bar-container">
+            <div id="measuredValueBar" class="bar measured-bar" style="width: 50%;">22°C</div>
         </div>
+        
+        <div class="bar-container">
+            <div id="controlOutputBar" class="bar control-bar" style="width: 0%;">0%</div>
+        </div>
+        
+        <button onclick="resetSystem()">Reset</button>
     </div>
 
     <script>
-        // PID Controller class
-        class PID {
-            constructor(Kp, Ki, Kd) {
-                this.Kp = Kp;
-                this.Ki = Ki;
-                this.Kd = Kd;
-                this.prevError = 0.0;
-                this.integral = 0.0;
-            }
+    
+            // PID Control Constants and Initial State
+        let Kp = 1.0, Ki = 0.1, Kd = 0.05;
+        let previousError = 0;
+        let integral = 0;
+        let setpoint = 25.0;  // Target temperature
+        let measuredValue = 22.0;  // Current temperature (e.g., read from sensor)
+        let coolingFactor = 0.8;  // Factor for cooling (when negative control is disabled)
 
-            // Calculate the PID output
-            calculate(setpoint, measuredValue, dt) {
-                const error = setpoint - measuredValue;
-                const Pout = this.Kp * error; // Proportional term
-                this.integral += error * dt;
-                const Iout = this.Ki * this.integral; // Integral term
-                const derivative = (error - this.prevError) / dt;
-                const Dout = this.Kd * derivative; // Derivative term
+        // DOM Elements
+        const setpointDisplay = document.getElementById('setpoint');
+        const measuredValueDisplay = document.getElementById('measuredValue');
+        const controlOutputDisplay = document.getElementById('controlOutput');
+        const measuredValueBar = document.getElementById('measuredValueBar');
+        const controlOutputBar = document.getElementById('controlOutputBar');
 
-                const output = Pout + Iout + Dout;
-                this.prevError = error;
-                return output;
-            }
+        // Reset the system
+        function resetSystem() {
+            measuredValue = 22.0;
+            integral = 0;
+            previousError = 0;
         }
 
-        // Generate a random setpoint within a given range
-        function generateRandomSetpoint(min, max) {
-            return Math.random() * (max - min) + min;
-        }
-        
-        function formatLargeNumber(number) {
-            if (Math.abs(number) > 1e6) {
-                return number.toExponential(2); // Display in exponential form with 2 decimal places
+        // Update PID calculation with heating and cooling
+        function updatePID() {
+            let error = setpoint - measuredValue;
+            integral += error;
+            let derivative = error - previousError;
+
+            // Retrieve values from input fields
+            Kp = parseFloat(document.getElementById('kp').value);
+            Ki = parseFloat(document.getElementById('ki').value);
+            Kd = parseFloat(document.getElementById('kd').value);
+
+            // Calculate control output using PID formula
+            let controlOutput = (Kp * error) + (Ki * integral) + (Kd * derivative);
+
+            // Check if negative control is enabled
+            let negativeControlEnabled = document.getElementById('negativeControl').checked;
+            
+            if (!negativeControlEnabled && measuredValue > setpoint) {
+                // Apply cooling by reducing the control output
+                controlOutput *= -coolingFactor;
             }
-            return number.toFixed(2); // Otherwise, show the number with 2 decimal places
+
+            // Clamp control output between 0 and 100%
+            controlOutput = Math.max(0, Math.min(controlOutput, 100));
+
+            // Update display and bar progress
+            updateDisplay(setpoint, measuredValue, controlOutput);
+            
+            // Save the current error for the next loop iteration
+            previousError = error;
         }
 
-        // Update webpage with PID values
+        // Update the webpage with PID values and progress bars
         function updateDisplay(setpoint, measuredValue, controlOutput) {
-            document.getElementById('setpoint').textContent = formatLargeNumber(setpoint);
-            document.getElementById('measuredValue').textContent = formatLargeNumber(measuredValue);
-            document.getElementById('controlOutput').textContent = formatLargeNumber(controlOutput);
+            setpointDisplay.textContent = setpoint.toFixed(2);
+            measuredValueDisplay.textContent = measuredValue.toFixed(2);
+            controlOutputDisplay.textContent = controlOutput.toFixed(2);
+
+            // Update measured value bar
+            let measuredBarPercentage = (measuredValue / 100) * 100;  // Scale to 100%
+            measuredValueBar.style.width = `${Math.min(measuredBarPercentage, 100)}%`;
+            measuredValueBar.textContent = `${measuredValue.toFixed(2)}°C`;
+
+            // Update control output bar
+            controlOutputBar.style.width = `${controlOutput}%`;
+            controlOutputBar.textContent = `${controlOutput.toFixed(2)}%`;
         }
 
-        let pid; // Declare pid variable for reuse
-        let setpoint, measuredValue;
-        const dt = 1.0; // Time step in seconds
-        const tolerance = 0.5; // Tolerance for reaching setpoint
+        // Simulate the heating/cooling system (run every second)
+        function simulate() {
+            // Simulate temperature change (heating or cooling)
+            let randomFluctuation = (Math.random() - 0.5) * 2;
+            measuredValue += randomFluctuation;
+            updatePID();  // Update PID calculation and display
 
-        // Function to start or reset the simulation
-        function startSimulation() {
-            const Kp = parseFloat(document.getElementById('kp').value);
-            const Ki = parseFloat(document.getElementById('ki').value);
-            const Kd = parseFloat(document.getElementById('kd').value);
-
-            pid = new PID(Kp, Ki, Kd);
-
-            measuredValue = 0.0;  // Start value
-            setpoint = generateRandomSetpoint(50.0, 150.0); // Initial random setpoint
-
-            // Run PID control loop indefinitely
-            setInterval(() => {
-                // Calculate PID output
-                const controlOutput = pid.calculate(setpoint, measuredValue, dt);
-
-                // Update the measured value based on the control output (simulate process response)
-                measuredValue += controlOutput * dt;
-
-                // Update the webpage with the new values
-                updateDisplay(setpoint, measuredValue, controlOutput);
-
-                // Check if the measured value is within the tolerance of the setpoint
-                if (Math.abs(setpoint - measuredValue) <= tolerance) {
-                    // Generate a new random setpoint
-                    setpoint = generateRandomSetpoint(50.0, 150.0);
-                    pid.prevError = 0.0; // Reset PID state
-                    pid.integral = 0.0;
-                }
-            }, 1000); // Update every second
+            setTimeout(simulate, 1000);  // Run the next simulation step every second
         }
 
-        // Reset the simulation when the reset button is pressed
-        document.getElementById('resetButton').addEventListener('click', startSimulation);
+        // Start simulation
+        simulate();
 
-        // Start the simulation when the page loads
-        window.onload = startSimulation;
+    
     </script>
 </body>
 </html>
