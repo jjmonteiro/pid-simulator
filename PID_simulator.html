@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PID Heating Simulation</title>
+    <title>PID Heating Simulator</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="pid.js" defer></script>
     <script src="heating.js" defer></script>
     <link rel="stylesheet" href="styles.css">
+    <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet'>
 </head>
 <body>
+    <div class="top-bar">
+      PID Heating Simulator
+    </div>
+    
     <div id="main-container">
         <!-- Left block: Graph + Temperature Display -->
         <div id="left-block">
@@ -26,8 +31,8 @@
 
                 </div>
                 <div class="temp-column" id="temp-bars">
-                    <p>Current Temperature: <span id="currentTempDisplay" class="value-display">0.00</span> °C</p>
-                    <p>Power Output: <span id="powerOutputDisplay" class="value-display">0.00</span> %</p>
+                    <p>Current Temperature<div class="progress-bar-container"><div id="currentTempProgress" class="progress-bar-fill"><span id="currentTempText" class="progress-bar-text">0 °C</span></div></div></p>
+                    <p>Power Output<div class="progress-bar-container"><div id="powerOutputProgress" class="progress-bar-fill"><span id="powerOutputText" class="progress-bar-text">0%</span></div></div></p>
                 </div>
                 <div class="temp-column" id="temp-buttons">
                     <button id="dumpHeatBtn">Dump Heat</button>
@@ -42,8 +47,8 @@
             <h2>Controller Settings</h2>
             <br>
             <div id="pid-controls-top">
-                <label for="kpSlider">Kp: <span id="kpValue">5</span></label>
-                <input type="range" id="kpSlider" min="0" max="100" step="0.01" value="5">
+                <label for="kpSlider">Kp: <span id="kpValue">50</span></label>
+                <input type="range" id="kpSlider" min="0" max="100" step="0.01" value="50">
 
                 <label for="kiSlider">Ki: <span id="kiValue">0.01</span></label>
                 <input type="range" id="kiSlider" min="0" max="1" step="0.01" value="0.01">
@@ -62,6 +67,10 @@
                 <input type="range" id="outsideTempSlider" min="-10" max="25" value="5">
             </div>
         </div>
+    </div>
+    
+    <div class="bottom-bar">
+      &copy; 2024 J.Monteiro
     </div>
 
     <script>

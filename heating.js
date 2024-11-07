@@ -24,6 +24,16 @@ const tempChart = new Chart(ctx, {
             x: { display: true, title: { display: true, text: 'Time (s)' } },
             y: { display: true, position: 'left', title: { display: true, text: 'Temperature (°C)' }, min: 0, max: 40 },
             y1:{ display: true, position: 'right', title: { display: true, text: 'Temperature (°C)' }, min: 0, max: 40 }
+        },
+        plugins: {
+            legend: {
+                labels: {
+                    // This more specific font property overrides the global property
+                    font: {
+                        family: 'Raleway'
+                    }
+                }
+            }
         }
     }
 });
@@ -69,12 +79,24 @@ function simulateHeating() {
     }
 
     // Update displays
-    currentTempDisplay.textContent = currentTemp.toFixed(2);
-    powerOutputDisplay.textContent = controlOutput.toFixed(2);
+    
+    // Update each custom progress bar
+    function updateProgressBar(elementId, textId, value, max = 100) {
+        const width = Math.min((value / max) * 100, 100); // Calculate width as a percentage
+        document.getElementById(elementId).style.width = width + "%"; // Update bar width
+        document.getElementById(textId).textContent = value.toFixed(2) + (textId.includes("Temp") ? " °C" : " %"); // Update text content
+    }
+    
+    //currentTempDisplay.textContent = currentTemp.toFixed(2);
+    //powerOutputDisplay.textContent = controlOutput.toFixed(2);
     pTermDisplay.textContent = (pid.Kp * (setpoint - currentTemp)).toFixed(2);
     iTermDisplay.textContent = (pid.Ki * pid.integral).toFixed(2);
     dTermDisplay.textContent = (pid.Kd * (setpoint - pid.prevError) / timeStep).toFixed(2);
     errorDisplay.textContent = (setpoint - currentTemp).toFixed(2);
+    
+    // Update progress bars
+    updateProgressBar("currentTempProgress", "currentTempText", currentTemp);
+    updateProgressBar("powerOutputProgress", "powerOutputText", Math.min(Math.max(controlOutput, 0), 100));
 
     // Update Chart
     if (tempChart.data.labels.length >= 100) {
@@ -93,14 +115,6 @@ function simulateHeating() {
     setTimeout(simulateHeating, 100); // Update every 100ms
 }
 
-// Event Listeners
-kpSlider.addEventListener('input', updateValues);
-kiSlider.addEventListener('input', updateValues);
-kdSlider.addEventListener('input', updateValues);
-setpointSlider.addEventListener('input', updateValues);
-heatLossSlider.addEventListener('input', updateValues);
-outsideTempSlider.addEventListener('input', updateValues);
-
 dumpHeatBtn.addEventListener('click', () => {
     if ((currentTemp -outsideTemp) > 5) currentTemp -= 5;
 });
@@ -118,6 +132,14 @@ resetSimulationBtn.addEventListener('click', () => {
     tempChart.data.datasets[1].data = [];
     tempChart.update();
 });
+
+// Event Listeners
+kpSlider.addEventListener('input', updateValues);
+kiSlider.addEventListener('input', updateValues);
+kdSlider.addEventListener('input', updateValues);
+setpointSlider.addEventListener('input', updateValues);
+heatLossSlider.addEventListener('input', updateValues);
+outsideTempSlider.addEventListener('input', updateValues);
 
 tempChartCanvas.addEventListener('click', () => {
     // Toggle simulation pause/resume on graph click
