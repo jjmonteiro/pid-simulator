@@ -30,15 +30,15 @@
             
                 <div class="container" id="info-container">
                     <div class="info-column" id="info-text">
-                        <p style="text-align:left">P value: <span id="pTermDisplay" class="value-display">0.00</span></p>
-                        <p style="text-align:left">I value: <span id="iTermDisplay" class="value-display">0.00</span></p>
-                        <p style="text-align:left">D value: <span id="dTermDisplay" class="value-display">0.00</span></p>
-                        <p style="text-align:left">Error: <span id="errorDisplay" class="value-display">0.00</span> °C</p>
+                        <p class="info-text">P value: <span id="pTermDisplay" class="value-display">0.00</span></p>
+                        <p class="info-text">I value: <span id="iTermDisplay" class="value-display">0.00</span></p>
+                        <p class="info-text">D value: <span id="dTermDisplay" class="value-display">0.00</span></p>
+                        <p class="info-text">Error: <span id="errorDisplay" class="value-display">0.00</span> °C</p>
                     </div>
                     <div class="info-column" id="info-bars">
-                        <p>Current Temperature</p>
+                        <p class="info-text">Current Temperature</p>
                         <div class="progress-bar-container"><div id="currentTempProgress" class="progress-bar-fill"><span id='currentTempText' class="progress-bar-text">0 °C</span></div></div>
-                        <p>Power Output</p>
+                        <p class="info-text">Power Output</p>
                         <div class="progress-bar-container"><div id="powerOutputProgress" class="progress-bar-fill"><span id='powerOutputText' class="progress-bar-text">0%</span></div></div>
                     </div>
                     <div class="info-column" id="info-buttons">
@@ -54,7 +54,7 @@
         <!-- Right Block with PID Controls -->
         <div id="right-column">
             <div class="container" id="pid-container">
-                <h2>Controller Settings</h2>
+                <h3>Controller Settings</h3>
                 <br>
                 <div id="pid-controls-top">
                     <label for="kpSlider">Kp: <span id="kpValue">50</span></label>
