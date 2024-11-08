@@ -14,12 +14,14 @@ const tempChart = new Chart(ctx, {
     data: {
         labels: [],
         datasets: [
-            { label: 'Current Temperature (°C)', data: [], borderColor: 'rgb(75, 192, 192)', fill: false },
-            { label: 'Target Temperature (Setpoint)', data: [], borderColor: 'rgb(255, 99, 132)', fill: false }
+            { label: 'Current Temperature (°C)', data: [], borderColor: '#4bc0c0', fill: false },
+            { label: 'Target Temperature (Setpoint)', data: [], borderColor: '#ff7d66', fill: false }
         ]
     },
     options: {
-        animation: false, // Disable animation for new points
+        animation: false,
+        responsive: true,
+        maintainAspectRatio: false,
         scales: {
             x: { display: true, title: { display: true, text: 'Time (s)' } },
             y: { display: true, position: 'left', title: { display: true, text: 'Temperature (°C)' }, min: 0, max: 40 },
@@ -147,6 +149,10 @@ tempChartCanvas.addEventListener('click', () => {
     if (simulationRunning) {
         simulateHeating(); // Restart simulation if resumed
     }
+});
+
+window.addEventListener('resize', () => {
+    tempChart.resize();
 });
 
 // Start Simulation

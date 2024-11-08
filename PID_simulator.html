@@ -12,70 +12,76 @@
 </head>
 <body>
     <div class="top-bar">
-      PID Heating Simulator
+        <h2>PID Heating Simulator</h2>
     </div>
     
     <div id="main-container">
-        <!-- Left block: Graph + Temperature Display -->
+        <!-- Left Block -->
         <div id="left-block">
-            <div id="chart-container">
-                <canvas id="tempChartCanvas" width="400" height="200"></canvas>
+            <!-- Left Top -->
+            <div id="left-top">
+                <div class="container" id="chart-container">
+                    <canvas id="tempChartCanvas"></canvas>
+                </div>
             </div>
             
-            <div id="temp-container">
-                <div class="temp-column" id="temp-info">
-                    <p>P value: <span id="pTermDisplay" class="value-display">0.00</span></p>
-                    <p>I value: <span id="iTermDisplay" class="value-display">0.00</span></p>
-                    <p>D value: <span id="dTermDisplay" class="value-display">0.00</span></p>
-                    <p>Error: <span id="errorDisplay" class="value-display">0.00</span> °C</p>
-
+            <!-- Left Bottom -->
+            <div id="left-bottom">
+            
+                <div class="container" id="info-container">
+                    <div class="info-column" id="info-text">
+                        <p style="text-align:left">P value: <span id="pTermDisplay" class="value-display">0.00</span></p>
+                        <p style="text-align:left">I value: <span id="iTermDisplay" class="value-display">0.00</span></p>
+                        <p style="text-align:left">D value: <span id="dTermDisplay" class="value-display">0.00</span></p>
+                        <p style="text-align:left">Error: <span id="errorDisplay" class="value-display">0.00</span> °C</p>
+                    </div>
+                    <div class="info-column" id="info-bars">
+                        <p>Current Temperature</p>
+                        <div class="progress-bar-container"><div id="currentTempProgress" class="progress-bar-fill"><span id='currentTempText' class="progress-bar-text">0 °C</span></div></div>
+                        <p>Power Output</p>
+                        <div class="progress-bar-container"><div id="powerOutputProgress" class="progress-bar-fill"><span id='powerOutputText' class="progress-bar-text">0%</span></div></div>
+                    </div>
+                    <div class="info-column" id="info-buttons">
+                        <button id="dumpHeatBtn">Dump Heat</button>
+                        <button id="clearIntegralBtn">Clear Integral</button>
+                        <button id="resetSimulationBtn">Reset Simulation</button>
+                    </div>
                 </div>
-                <div class="temp-column" id="temp-bars">
-                    <p>Current Temperature<div class="progress-bar-container"><div id="currentTempProgress" class="progress-bar-fill"><span id="currentTempText" class="progress-bar-text">0 °C</span></div></div></p>
-                    <p>Power Output<div class="progress-bar-container"><div id="powerOutputProgress" class="progress-bar-fill"><span id="powerOutputText" class="progress-bar-text">0%</span></div></div></p>
-                </div>
-                <div class="temp-column" id="temp-buttons">
-                    <button id="dumpHeatBtn">Dump Heat</button>
-                    <button id="clearIntegralBtn">Clear Integral</button>
-                    <button id="resetSimulationBtn">Reset Simulation</button>
-                </div>
+            
             </div>
         </div>
 
-        <!-- Right block: Controls -->
-        <div id="pid-controls">
-            <h2>Controller Settings</h2>
-            <br>
-            <div id="pid-controls-top">
-                <label for="kpSlider">Kp: <span id="kpValue">50</span></label>
-                <input type="range" id="kpSlider" min="0" max="100" step="0.01" value="50">
+        <!-- Right Block with PID Controls -->
+        <div id="right-column">
+            <div class="container" id="pid-container">
+                <h2>Controller Settings</h2>
+                <br>
+                <div id="pid-controls-top">
+                    <label for="kpSlider">Kp: <span id="kpValue">50</span></label>
+                    <input type="range" id="kpSlider" min="0" max="100" step="0.01" value="50">
 
-                <label for="kiSlider">Ki: <span id="kiValue">0.01</span></label>
-                <input type="range" id="kiSlider" min="0" max="1" step="0.01" value="0.01">
+                    <label for="kiSlider">Ki: <span id="kiValue">0.01</span></label>
+                    <input type="range" id="kiSlider" min="0" max="1" step="0.01" value="0.01">
 
-                <label for="kdSlider">Kd: <span id="kdValue">10</span></label>
-                <input type="range" id="kdSlider" min="0" max="100" value="10">
+                    <label for="kdSlider">Kd: <span id="kdValue">10</span></label>
+                    <input type="range" id="kdSlider" min="0" max="100" value="10">
 
-                <label for="setpointSlider">Setpoint: <span id="setpointValue">20</span>°C</label>
-                <input type="range" id="setpointSlider" min="10" max="30" value="20">
-            </div>
-            <div id="pid-controls-bottom">
-                <label for="heatLossSlider">Heat Loss Factor: <span id="heatLossValue">2</span>%</label>
-                <input type="range" id="heatLossSlider" min="0" max="5" value="2">
-                
-                <label for="outsideTempSlider">Outside Temperature: <span id="outsideTempValue">5</span>°C</label>
-                <input type="range" id="outsideTempSlider" min="-10" max="25" value="5">
+                    <label for="setpointSlider">Setpoint: <span id="setpointValue">20</span>°C</label>
+                    <input type="range" id="setpointSlider" min="10" max="30" value="20">
+                </div>
+                <div id="pid-controls-bottom">
+                    <label for="heatLossSlider">Heat Loss Factor: <span id="heatLossValue">2</span>%</label>
+                    <input type="range" id="heatLossSlider" min="0" max="5" value="2">
+                    
+                    <label for="outsideTempSlider">Outside Temperature: <span id="outsideTempValue">5</span>°C</label>
+                    <input type="range" id="outsideTempSlider" min="-10" max="25" value="5">
+                </div>
             </div>
         </div>
     </div>
-    
+
     <div class="bottom-bar">
-      &copy; 2024 J.Monteiro
+        &copy; 2024 J.Monteiro
     </div>
-
-    <script>
-        // This script block is intentionally left for inline execution
-        // The actual logic is in separate JS files as per modularity
-    </script>
 </body>
 </html>
