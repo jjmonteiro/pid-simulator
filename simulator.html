@@ -52,11 +52,11 @@
         </div>
 
         <!-- Right Block with PID Controls -->
-        <div id="right-column">
+        <div id="right-block">
             <div class="container" id="pid-container">
                 <h3>Controller Settings</h3>
                 <br>
-                <div id="pid-controls-top">
+                <div class="container pid-controls-top">
                     <label for="kpSlider">Kp: <span id="kpValue">50</span></label>
                     <input type="range" id="kpSlider" min="0" max="100" step="0.01" value="50">
 
@@ -69,7 +69,7 @@
                     <label for="setpointSlider">Setpoint: <span id="setpointValue">20</span>°C</label>
                     <input type="range" id="setpointSlider" min="10" max="30" value="20">
                 </div>
-                <div id="pid-controls-bottom">
+                <div class="container pid-controls-bottom">
                     <label for="heatLossSlider">Heat Loss Factor: <span id="heatLossValue">2</span>%</label>
                     <input type="range" id="heatLossSlider" min="0" max="5" value="2">
                     
